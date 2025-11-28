@@ -180,12 +180,31 @@ public class FleetHighwaySimulator extends JFrame {
     }
     
     /**
-     * Create the vehicle status panel.
+     * Create the vehicle status panel with scrolling support.
      */
     private JPanel createVehiclePanel() {
         vehiclePanel = new JPanel();
         vehiclePanel.setLayout(new BoxLayout(vehiclePanel, BoxLayout.Y_AXIS));
-        vehiclePanel.setBorder(BorderFactory.createCompoundBorder(
+        vehiclePanel.setBackground(new Color(245, 248, 250));
+        
+        // Create display panels for each vehicle
+        for (SimulatedVehicle vehicle : vehicles) {
+            VehicleDisplayPanel display = new VehicleDisplayPanel(vehicle);
+            vehicleDisplays.add(display);
+            vehiclePanel.add(display);
+            vehiclePanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        }
+        
+        // Wrap in a scroll pane for scrolling support
+        JScrollPane scrollPane = new JScrollPane(vehiclePanel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        
+        // Container panel with title border
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        containerPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createTitledBorder(
                 BorderFactory.createLineBorder(new Color(51, 102, 153), 2),
                 "Vehicle Status",
@@ -196,16 +215,9 @@ public class FleetHighwaySimulator extends JFrame {
             ),
             BorderFactory.createEmptyBorder(10, 10, 10, 10)
         ));
+        containerPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Create display panels for each vehicle
-        for (SimulatedVehicle vehicle : vehicles) {
-            VehicleDisplayPanel display = new VehicleDisplayPanel(vehicle);
-            vehicleDisplays.add(display);
-            vehiclePanel.add(display);
-            vehiclePanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        }
-        
-        return vehiclePanel;
+        return containerPanel;
     }
     
     /**
@@ -477,26 +489,29 @@ public class FleetHighwaySimulator extends JFrame {
         
         public VehicleDisplayPanel(SimulatedVehicle vehicle) {
             this.vehicle = vehicle;
-            setLayout(new BorderLayout(10, 5));
+            setLayout(new BorderLayout(15, 5));
             setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.GRAY),
-                BorderFactory.createEmptyBorder(8, 10, 8, 10)
+                BorderFactory.createLineBorder(new Color(51, 102, 153), 1),
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)
             ));
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+            setBackground(Color.WHITE);
             
-            // Left panel - vehicle info
-            JPanel infoPanel = new JPanel(new GridLayout(2, 2, 10, 2));
+            // Left panel - vehicle info (non-opaque to inherit parent background color for status)
+            JPanel infoPanel = new JPanel(new GridLayout(2, 2, 15, 5));
+            infoPanel.setOpaque(false);
             
-            idLabel = new JLabel(vehicle.getName() + " (" + vehicle.getId() + ")");
+            idLabel = new JLabel("\uD83D\uDE97 " + vehicle.getName() + " (" + vehicle.getId() + ")");
             idLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            idLabel.setForeground(new Color(51, 102, 153));
             
-            mileageLabel = new JLabel("Mileage: 0 km");
+            mileageLabel = new JLabel("\uD83D\uDCCF Mileage: 0 km");
             mileageLabel.setFont(new Font("Arial", Font.PLAIN, 12));
             
-            fuelLabel = new JLabel(String.format("Fuel: %.1f / %.1f L", vehicle.getFuelLevel(), vehicle.getMaxFuel()));
+            fuelLabel = new JLabel(String.format("\u26FD Fuel: %.1f / %.1f L", vehicle.getFuelLevel(), vehicle.getMaxFuel()));
             fuelLabel.setFont(new Font("Arial", Font.PLAIN, 12));
             
-            statusLabel = new JLabel("Status: " + vehicle.getStatus());
+            statusLabel = new JLabel("\u2022 Status: " + vehicle.getStatus());
             statusLabel.setFont(new Font("Arial", Font.BOLD, 12));
             
             infoPanel.add(idLabel);
@@ -506,17 +521,24 @@ public class FleetHighwaySimulator extends JFrame {
             
             add(infoPanel, BorderLayout.CENTER);
             
-            // Right panel - fuel bar and refuel button
-            JPanel rightPanel = new JPanel(new BorderLayout(5, 5));
+            // Right panel - fuel bar and refuel button (non-opaque to inherit parent background color)
+            JPanel rightPanel = new JPanel(new BorderLayout(5, 8));
+            rightPanel.setOpaque(false);
             
             fuelBar = new JProgressBar(0, (int) vehicle.getMaxFuel());
             fuelBar.setValue((int) vehicle.getFuelLevel());
             fuelBar.setStringPainted(true);
-            fuelBar.setPreferredSize(new Dimension(100, 20));
+            fuelBar.setPreferredSize(new Dimension(120, 22));
+            fuelBar.setForeground(new Color(0, 128, 0));
+            fuelBar.setBackground(new Color(230, 230, 230));
             
-            refuelButton = new JButton("Refuel");
-            refuelButton.setFont(new Font("Arial", Font.PLAIN, 10));
-            refuelButton.setPreferredSize(new Dimension(70, 25));
+            refuelButton = new JButton("\u26FD Refuel");
+            refuelButton.setFont(new Font("Arial", Font.BOLD, 11));
+            refuelButton.setPreferredSize(new Dimension(90, 28));
+            refuelButton.setBackground(new Color(0, 128, 255));
+            refuelButton.setForeground(Color.WHITE);
+            refuelButton.setFocusPainted(false);
+            refuelButton.setBorder(BorderFactory.createRaisedBevelBorder());
             refuelButton.addActionListener(e -> refuelVehicle());
             
             rightPanel.add(fuelBar, BorderLayout.CENTER);
@@ -526,26 +548,37 @@ public class FleetHighwaySimulator extends JFrame {
         }
         
         public void updateDisplay() {
-            mileageLabel.setText(String.format("Mileage: %.0f km", vehicle.getMileage()));
-            fuelLabel.setText(String.format("Fuel: %.1f / %.1f L", vehicle.getFuelLevel(), vehicle.getMaxFuel()));
+            mileageLabel.setText(String.format("\uD83D\uDCCF Mileage: %.0f km", vehicle.getMileage()));
+            fuelLabel.setText(String.format("\u26FD Fuel: %.1f / %.1f L", vehicle.getFuelLevel(), vehicle.getMaxFuel()));
             fuelBar.setValue((int) vehicle.getFuelLevel());
             
+            // Update fuel bar color based on level (guard against division by zero)
+            double maxFuel = vehicle.getMaxFuel();
+            double fuelPercent = maxFuel > 0 ? vehicle.getFuelLevel() / maxFuel : 0;
+            if (fuelPercent > 0.5) {
+                fuelBar.setForeground(new Color(0, 128, 0));
+            } else if (fuelPercent > 0.2) {
+                fuelBar.setForeground(new Color(255, 165, 0));
+            } else {
+                fuelBar.setForeground(Color.RED);
+            }
+            
             SimulatedVehicle.VehicleStatus status = vehicle.getStatus();
-            statusLabel.setText("Status: " + status);
+            statusLabel.setText("\u2022 Status: " + status);
             
             // Color code status
             switch (status) {
                 case RUNNING:
                     statusLabel.setForeground(new Color(0, 128, 0));
-                    setBackground(new Color(220, 255, 220));
+                    setBackground(new Color(232, 245, 233));
                     break;
                 case PAUSED:
                     statusLabel.setForeground(new Color(255, 165, 0));
-                    setBackground(new Color(255, 240, 200));
+                    setBackground(new Color(255, 248, 225));
                     break;
                 case OUT_OF_FUEL:
                     statusLabel.setForeground(Color.RED);
-                    setBackground(new Color(255, 220, 220));
+                    setBackground(new Color(255, 235, 238));
                     break;
                 case STOPPED:
                     statusLabel.setForeground(Color.GRAY);
