@@ -80,7 +80,7 @@ public class FleetVehicleAdapter extends SimulatedVehicle {
                     wrappedVehicle.getMileageSinceMaintenance() + 1
                 );
             } catch (Exception e) {
-                // Ignore mileage update failures
+                // Ignore exceptions from vehicle state inconsistencies during simulation
             }
         }
         
@@ -124,7 +124,7 @@ public class FleetVehicleAdapter extends SimulatedVehicle {
             try {
                 ((FuelConsumable) wrappedVehicle).refuel(amount);
             } catch (InvalidOperationException e) {
-                // Ignore refuel failures
+                // Ignore InvalidOperationException from vehicle refuel constraints (e.g., negative amounts)
             }
         }
     }

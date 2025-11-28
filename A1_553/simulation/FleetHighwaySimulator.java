@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import transportation.abstractclasses.Vehicle;
-import transportation.interfaces.FuelConsumable;
 
 /**
  * Fleet Highway Simulator - Main GUI Application
@@ -104,13 +103,7 @@ public class FleetHighwaySimulator extends JFrame {
     private void createVehiclesFromFleet(List<Vehicle> fleetVehicles) {
         for (Vehicle vehicle : fleetVehicles) {
             // Create adapter for each fleet vehicle
-            // Use initial fuel based on vehicle's current fuel level if it's fuel consumable
-            double initialFuel = INITIAL_FUEL;
-            if (vehicle instanceof FuelConsumable) {
-                double currentFuel = ((FuelConsumable) vehicle).getFuelLevel();
-                initialFuel = Math.max(currentFuel, INITIAL_FUEL); // Use at least INITIAL_FUEL
-            }
-            
+            // The adapter will use the vehicle's current fuel level if it's fuel consumable
             FleetVehicleAdapter adapter = new FleetVehicleAdapter(vehicle, MAX_FUEL, FUEL_RATE);
             vehicles.add(adapter);
         }
