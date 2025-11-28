@@ -1,8 +1,12 @@
 ﻿**README.txt**
 
-**Transportation Fleet Management System**
+**Transportation Fleet Management System & Fleet Highway Simulator**
 
-This Java program simulates a transportation fleet management system, demonstrating key Object-Oriented Programming (OOP) principles. The system manages a diverse fleet of land, air, and water vehicles, handling operations like route planning, cargo and passenger management, and maintenance tracking through a command-line interface (CLI).
+This Java program includes two main components:
+
+1. **Fleet Management System (CLI)** - A command-line based transportation fleet management system demonstrating key Object-Oriented Programming (OOP) principles. The system manages a diverse fleet of land, air, and water vehicles, handling operations like route planning, cargo and passenger management, and maintenance tracking.
+
+2. **Fleet Highway Simulator (GUI)** - A graphical simulation system (Assignment 3) that demonstrates multithreading, race conditions, and synchronization in Java using AWT/Swing.
 
 
 
@@ -306,5 +310,147 @@ To test this feature:
 
 **Car,C006,Toyota,200.0,0.0,0.0,4,0.0,0,false**
 
+
+
+---
+
+## Assignment 3: Fleet Highway Simulator (GUI)
+
+### Overview
+
+The Fleet Highway Simulator is a graphical application built using Java Swing that demonstrates:
+- **Multithreaded Execution**: Multiple vehicles operate in their own threads
+- **Shared Resource Management**: A Highway Distance Counter that all vehicles update
+- **Race Condition Demonstration**: Shows data inconsistency from unsynchronized access
+- **Synchronization Fix**: Uses ReentrantLock to ensure thread-safe operations
+
+### Design and GUI Layout
+
+The GUI consists of:
+
+1. **Title Panel**: Blue header with application title
+2. **Highway Distance Counter Panel**: 
+   - Large display showing total distance traveled by all vehicles
+   - Expected increments counter for comparison
+   - Race condition status indicator
+   - Synchronization status display
+3. **Vehicle Status Panel**: Shows each vehicle with:
+   - Vehicle name and ID
+   - Current mileage
+   - Fuel level (with progress bar)
+   - Operational status (Running/Paused/Out-of-Fuel/Stopped)
+   - Refuel button
+4. **Control Panel**:
+   - Start, Pause, Resume, Stop, Reset buttons
+   - Synchronization toggle checkbox
+
+### How to Compile and Run the Highway Simulator
+
+```bash
+# Navigate to the A1_553 directory
+cd A1_553
+
+# Compile all simulation classes
+javac -d . simulation/*.java
+
+# Run the simulator
+java simulation.FleetHighwaySimulator
+```
+
+### Simulation Features
+
+**Vehicle Simulation:**
+- 3 vehicles run concurrently (Toyota Camry, Honda Civic, Ford Mustang)
+- Each vehicle travels approximately 1 km per second
+- Fuel is consumed as vehicles travel
+- Vehicles pause when out of fuel until refueled
+
+**GUI Controls:**
+- **Start**: Begins the simulation, all vehicles start traveling
+- **Pause**: Pauses all vehicles temporarily
+- **Resume**: Resumes paused vehicles
+- **Stop**: Stops the simulation completely
+- **Reset**: Resets all vehicles to initial state
+- **Refuel**: Individual refuel buttons for each vehicle
+
+**How Simulation Threads are Controlled via GUI:**
+
+The simulation uses the following threading pattern:
+1. Each vehicle runs in its own `VehicleThread` (extends Thread)
+2. The GUI is updated using a Swing Timer on the Event Dispatch Thread (EDT)
+3. Thread control uses:
+   - `volatile boolean` flags for running/paused state
+   - `Object` lock for pause/resume synchronization
+   - `Thread.interrupt()` for clean shutdown
+
+### Race Condition Demonstration and Fix
+
+**Step 1: Unsynchronized Access (Default Mode)**
+
+When the "Enable Synchronization" checkbox is **unchecked**, the shared `HighwayDistanceCounter` is updated without locks:
+
+```java
+// UNSYNCHRONIZED - Causes race condition!
+int current = totalDistance;
+Thread.sleep(1);  // Delay increases chance of race condition
+totalDistance = current + amount;
+```
+
+Running the simulation in this mode will show:
+- The total distance counter does not match the sum of individual vehicle mileages
+- Warning indicator: "⚠ RACE CONDITION DETECTED!"
+- Counter discrepancy grows over time
+
+**Step 2: Synchronized Access (Fix)**
+
+When the "Enable Synchronization" checkbox is **checked**, the counter uses `ReentrantLock`:
+
+```java
+lock.lock();
+try {
+    totalDistance += amount;  // Thread-safe
+} finally {
+    lock.unlock();
+}
+```
+
+Running with synchronization enabled shows:
+- Counter consistently matches sum of vehicle mileages
+- Success indicator: "✓ Counter Consistent"
+
+### GUI Thread-Safety Considerations
+
+**Event Dispatch Thread (EDT):**
+- All GUI updates occur on the EDT using `SwingUtilities.invokeLater()`
+- A Swing Timer (updating every 100ms) ensures thread-safe GUI updates
+- Vehicle state is read using synchronized methods in `SimulatedVehicle`
+
+**Thread-Safe Patterns Used:**
+1. `volatile` keywords for shared boolean flags
+2. `synchronized` methods in `SimulatedVehicle` for state access
+3. `ReentrantLock` in `HighwayDistanceCounter` for shared counter
+4. `Object.wait()/notifyAll()` for pause/resume control
+
+### Class Structure
+
+```
+simulation/
+├── HighwayDistanceCounter.java  - Shared counter (demonstrates race condition)
+├── SimulatedVehicle.java        - Vehicle model with state management
+├── VehicleThread.java           - Thread implementation for each vehicle
+└── FleetHighwaySimulator.java   - Main GUI application
+```
+
+### Screenshots Expected Behavior
+
+**Race Condition (Unsynchronized):**
+- Counter shows values like "45 km" while sum of mileages is "48 km"
+- Red warning indicator appears
+- Values diverge more as simulation runs longer
+
+**Correct Behavior (Synchronized):**
+- Counter exactly matches sum of individual mileages
+- Green checkmark indicator
+- Consistent throughout simulation
 
 
