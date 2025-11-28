@@ -7,6 +7,8 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import transportation.abstractclasses.Vehicle;
+
 /**
  * Fleet Highway Simulator - Main GUI Application
  * 
@@ -19,6 +21,7 @@ import java.util.List;
  * - Shared Highway Distance Counter
  * - Race condition demonstration and fix toggle
  * - Refueling capability for out-of-fuel vehicles
+ * - Integration with Fleet Management System (Assignment 1-2)
  */
 public class FleetHighwaySimulator extends JFrame {
     // Simulation components
@@ -51,9 +54,18 @@ public class FleetHighwaySimulator extends JFrame {
     private static final int THREAD_JOIN_TIMEOUT_MS = 2000;  // Timeout for thread join
     
     /**
-     * Creates the Fleet Highway Simulator GUI.
+     * Creates the Fleet Highway Simulator GUI with default demo vehicles.
      */
     public FleetHighwaySimulator() {
+        this(null);
+    }
+    
+    /**
+     * Creates the Fleet Highway Simulator GUI with vehicles from Fleet Management System.
+     * 
+     * @param fleetVehicles List of vehicles from Fleet Management System, or null to use default demo vehicles
+     */
+    public FleetHighwaySimulator(List<Vehicle> fleetVehicles) {
         super("Fleet Highway Simulator - Assignment 3");
         
         // Initialize simulation components
@@ -62,8 +74,12 @@ public class FleetHighwaySimulator extends JFrame {
         vehicleThreads = new ArrayList<>();
         vehicleDisplays = new ArrayList<>();
         
-        // Create vehicles
-        createVehicles();
+        // Create vehicles (from fleet or default demo)
+        if (fleetVehicles != null && !fleetVehicles.isEmpty()) {
+            createVehiclesFromFleet(fleetVehicles);
+        } else {
+            createVehicles();
+        }
         
         // Setup GUI
         initializeGUI();
@@ -72,14 +88,34 @@ public class FleetHighwaySimulator extends JFrame {
         setupUpdateTimer();
         
         // Window settings
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setSize(700, 600);
         setLocationRelativeTo(null);
         setResizable(true);
     }
     
     /**
-     * Create the simulated vehicles.
+     * Create simulated vehicles from Fleet Management System vehicles.
+     * Uses FleetVehicleAdapter to wrap existing Vehicle objects.
+     * 
+     * @param fleetVehicles List of vehicles from Fleet Management System
+     */
+    private void createVehiclesFromFleet(List<Vehicle> fleetVehicles) {
+        for (Vehicle vehicle : fleetVehicles) {
+            // Create adapter for each fleet vehicle
+            // The adapter will use the vehicle's current fuel level if it's fuel consumable
+            FleetVehicleAdapter adapter = new FleetVehicleAdapter(vehicle, MAX_FUEL, FUEL_RATE);
+            vehicles.add(adapter);
+        }
+        
+        // If no vehicles were added, add at least one demo vehicle
+        if (vehicles.isEmpty()) {
+            createVehicles();
+        }
+    }
+    
+    /**
+     * Create the simulated vehicles (default demo vehicles).
      */
     private void createVehicles() {
         vehicles.add(new SimulatedVehicle("V001", "Toyota Camry", INITIAL_FUEL, MAX_FUEL, FUEL_RATE));
