@@ -65,8 +65,9 @@ public class HighwayDistanceCounter {
     
     /**
      * Get the expected number of increments (for race condition comparison).
+     * Note: This is synchronized to prevent race conditions when reading.
      */
-    public int getExpectedIncrements() {
+    public synchronized int getExpectedIncrements() {
         return expectedIncrements;
     }
     

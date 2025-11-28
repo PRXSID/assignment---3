@@ -114,6 +114,7 @@ public class VehicleThread extends Thread {
         synchronized (pauseLock) {
             pauseLock.notifyAll();
         }
+        // Interrupt after notifying to ensure proper cleanup order
         this.interrupt();
     }
     

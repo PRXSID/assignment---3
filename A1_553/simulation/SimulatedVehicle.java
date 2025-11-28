@@ -105,18 +105,18 @@ public class SimulatedVehicle {
     /**
      * Travel one kilometer (if fuel is available).
      * 
-     * @return true if travel was successful, false if out of fuel
+     * @return true if travel was successful, false if not enough fuel to start
      */
     public synchronized boolean travel() {
         if (fuelLevel >= fuelConsumptionRate) {
             mileage += 1;
             fuelLevel -= fuelConsumptionRate;
             
-            // Check if we ran out of fuel
+            // Check if we have enough fuel for the next trip
             if (fuelLevel < fuelConsumptionRate) {
                 status = VehicleStatus.OUT_OF_FUEL;
-                return false;
             }
+            // Return true since we did travel 1km successfully
             return true;
         } else {
             status = VehicleStatus.OUT_OF_FUEL;

@@ -48,6 +48,7 @@ public class FleetHighwaySimulator extends JFrame {
     private static final double INITIAL_FUEL = 20.0;  // Initial fuel in liters
     private static final double MAX_FUEL = 50.0;      // Max fuel capacity
     private static final double FUEL_RATE = 1.0;      // Fuel per km
+    private static final int THREAD_JOIN_TIMEOUT_MS = 2000;  // Timeout for thread join
     
     /**
      * Creates the Fleet Highway Simulator GUI.
@@ -387,7 +388,7 @@ public class FleetHighwaySimulator extends JFrame {
         // Wait for threads to finish
         for (VehicleThread thread : vehicleThreads) {
             try {
-                thread.join(1000);
+                thread.join(THREAD_JOIN_TIMEOUT_MS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
