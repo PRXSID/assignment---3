@@ -194,9 +194,9 @@ $$$$$ FLEET MANAGEMENT SYSTEM $$$$$
 
 17\. Sort Fleet
 
+18\. Launch Highway Simulator (GUI)
 
-
-18\. Exit System
+19\. Exit System
 
 
 
@@ -323,6 +323,29 @@ The Fleet Highway Simulator is a graphical application built using Java Swing th
 - **Shared Resource Management**: A Highway Distance Counter that all vehicles update
 - **Race Condition Demonstration**: Shows data inconsistency from unsynchronized access
 - **Synchronization Fix**: Uses ReentrantLock to ensure thread-safe operations
+- **Integration with Fleet Management System**: Can use vehicles from Assignment 1-2
+
+### Integration with Fleet Management System
+
+The Highway Simulator is now integrated with the Fleet Management System (Assignments 1-2). This integration allows you to:
+
+1. **Launch the simulator directly from the CLI**: Use menu option 18 in the Fleet Management System
+2. **Use your actual fleet vehicles**: The simulator can run with vehicles from your managed fleet
+3. **Synchronized mileage updates**: Mileage accumulated in the simulator is reflected in the fleet vehicles
+
+#### How the Integration Works
+
+- **FleetVehicleAdapter**: A new adapter class wraps Fleet Management `Vehicle` objects for use in the simulation
+- **Bidirectional Updates**: When a vehicle travels in the simulation, its mileage is updated in both the simulation and the original fleet vehicle
+- **Fuel Synchronization**: Refueling in the simulation also refuels the underlying fleet vehicle (if it supports fuel operations)
+
+#### Launching the Integrated Simulator
+
+From the Fleet Management CLI:
+1. Run the Fleet Management System (`java Main`)
+2. Select option **18. Launch Highway Simulator (GUI)**
+3. Choose whether to use fleet vehicles or demo vehicles
+4. The simulator will open in a new window
 
 ### Design and GUI Layout
 
@@ -350,10 +373,13 @@ The GUI consists of:
 # Navigate to the A1_553 directory
 cd A1_553
 
-# Compile all simulation classes
-javac -d . simulation/*.java
+# Option 1: Compile and run everything (recommended - includes integration)
+javac -d . transportation/exceptions/*.java transportation/interfaces/*.java transportation/abstractclasses/*.java transportation/vehicles/*.java transportation/utility/*.java transportation/management/FleetManager.java simulation/*.java Main.java
 
-# Run the simulator
+# Run the Fleet Management System (includes simulator launch option 18)
+java Main
+
+# Option 2: Run the standalone simulator (demo vehicles only)
 java simulation.FleetHighwaySimulator
 ```
 
@@ -438,6 +464,7 @@ simulation/
 ├── HighwayDistanceCounter.java  - Shared counter (demonstrates race condition)
 ├── SimulatedVehicle.java        - Vehicle model with state management
 ├── VehicleThread.java           - Thread implementation for each vehicle
+├── FleetVehicleAdapter.java     - Adapter for Fleet Management integration
 └── FleetHighwaySimulator.java   - Main GUI application
 ```
 

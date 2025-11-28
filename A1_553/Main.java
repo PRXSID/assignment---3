@@ -5,6 +5,9 @@ import transportation.abstractclasses.Vehicle;
 import transportation.interfaces.*;
 import transportation.exceptions.*;
 import transportation.utility.*;
+import simulation.FleetHighwaySimulator;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 public class Main {
     private static Scanner scanner = new Scanner(System.in);
@@ -48,8 +51,11 @@ public class Main {
                 case 16: listDistinctModels(); break;
                 case 17: sortFleet(); break;
                 
+                // ASSIGNMENT 3 - HIGHWAY SIMULATOR INTEGRATION
+                case 18: launchHighwaySimulator(); break;
+                
                 // EXIT
-                case 18: running = false; System.out.println("Exiting System. Goodbye!"); break;
+                case 19: running = false; System.out.println("Exiting System. Goodbye!"); break;
 
                 default: System.out.println("Invalid choice. Try again.");
             }
@@ -103,7 +109,8 @@ public class Main {
         System.out.println("15. Load Fleet from CSV");
         System.out.println("16. List Distinct Vehicle Models");
         System.out.println("17. Sort Fleet");
-        System.out.println("18. Exit System");
+        System.out.println("18. Launch Highway Simulator (GUI)");
+        System.out.println("19. Exit System");
     }
 
     private static void sortFleet() {
@@ -388,5 +395,52 @@ public class Main {
             try { ((CargoCarrier) vehicle).unloadCargo(amount); }
             catch (InvalidOperationException e) { System.out.println("Error: " + e.getMessage()); }
         } else System.out.println("Vehicle cannot carry cargo.");
+    }
+    
+    /**
+     * Launch the Highway Simulator GUI with current fleet vehicles.
+     * This integrates Assignment 3 (Highway Simulator) with the Fleet Management System.
+     */
+    private static void launchHighwaySimulator() {
+        System.out.println("\nLaunching Highway Simulator...");
+        System.out.println("1. Use current fleet vehicles");
+        System.out.println("2. Use demo vehicles");
+        
+        int choice = getIntInput("Enter choice: ");
+        
+        final java.util.List<Vehicle> vehiclesToUse;
+        
+        if (choice == 1) {
+            vehiclesToUse = fleetManager.getFleet();
+            if (vehiclesToUse.isEmpty()) {
+                System.out.println("No vehicles in fleet. Using demo vehicles instead.");
+            } else {
+                System.out.println("Loading " + vehiclesToUse.size() + " vehicles from fleet...");
+            }
+        } else {
+            vehiclesToUse = null;
+            System.out.println("Using demo vehicles...");
+        }
+        
+        // Launch the GUI on the Event Dispatch Thread
+        SwingUtilities.invokeLater(() -> {
+            try {
+                // Set look and feel to system default
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                // Use default look and feel
+            }
+            
+            FleetHighwaySimulator simulator;
+            if (vehiclesToUse != null && !vehiclesToUse.isEmpty()) {
+                simulator = new FleetHighwaySimulator(vehiclesToUse);
+            } else {
+                simulator = new FleetHighwaySimulator();
+            }
+            simulator.setVisible(true);
+        });
+        
+        System.out.println("Highway Simulator launched in a new window.");
+        System.out.println("Note: Mileage changes in the simulator will update the fleet vehicles.");
     }
 }
